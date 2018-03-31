@@ -29,9 +29,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void SeeChat(View view)
     {
-        //Going to make a practice file, use this real one for later
+
         //Intent intent = new Intent(this, Chat.class);
-        Intent intent = new Intent(this, practice.class);
+        Intent intent = new Intent(this, Nsd.class);
         startActivity(intent);
     }
 
