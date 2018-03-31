@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import static android.os.Build.ID;
@@ -37,29 +38,45 @@ public class practice extends AppCompatActivity {
     private static final String TAG = "Chat";
     int port = -1;
 
+
+    NsdServiceInfo serviceInfo = new NsdServiceInfo();
+
     ArrayList<NsdServiceInfo> servicelist = new ArrayList<NsdServiceInfo>();
 
 
     DiscoverMe d;
     RegisterMe r;
-    
-    
+    ResolveMe c;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.practice_layout);
-        mNsdManager = (NsdManager)getSystemService(Context.NSD_SERVICE);
+        mNsdManager = (NsdManager) getSystemService(Context.NSD_SERVICE);
+        createService();
     }
 
+    public void createService() {
+
+        serviceInfo.setServiceName(mServiceName);
+        serviceInfo.setServiceType(httpServiceType);
+        ;
+
+    }
+
+
     //After the service is registered we can attempt to connect to it
-    public void connect(View view)
-    {
-        /*
-        TextView textView = (TextView) findViewById(R.id.resolve_textview);
+    public void connect(View view) {
+        Log.d("LOL", "LOL2");
+       /* TextView textView = (TextView) findViewById(R.id.resolve_textview);
         textView.setText("Host: " + serviceInfo.getServiceName() + " \n"
         + "Port: " + String.valueOf(serviceInfo.getPort()) + " \n"
                 + "ServiceType: " + serviceInfo.getServiceType());
-        */
+*/
+        Log.d("LOL", "Host: " + serviceInfo.getServiceName());
+        c = new ResolveMe();
+        c.start();
     }
 
 
@@ -81,13 +98,16 @@ public class practice extends AppCompatActivity {
 
     public void startRegister(int port) {
         //Local NsdServiceInfo object
-        NsdServiceInfo serviceInfo = new NsdServiceInfo();
+        //changed from local to a global, so that way if one device registers it,
+        //another can discover and find it and connect
+        /*serviceInfo = new NsdServiceInfo();
         serviceInfo.setPort(port);
         serviceInfo.setServiceName(mServiceName);
-        serviceInfo.setServiceType(httpServiceType);
+        serviceInfo.setServiceType(httpServiceType);*/
 
+        serviceInfo.setPort(port);
         TextView textView = (TextView) findViewById(R.id.register_textview);
-        textView.setText("Registering: " + mServiceName +
+        textView.setText("Registering: " + serviceInfo.getServiceName() +
                 "\nServiceType: " + serviceInfo.getServiceType() +
                 "\nPort: " + String.valueOf(port));
 
@@ -96,30 +116,27 @@ public class practice extends AppCompatActivity {
     }
 
 
-    private class RegisterMe implements Runnable
-    {
+    private class RegisterMe implements Runnable {
         private NsdServiceInfo serviceInfo;
-        public RegisterMe(NsdServiceInfo nsdServiceInfo)
-        {
+
+        public RegisterMe(NsdServiceInfo nsdServiceInfo) {
             this.serviceInfo = nsdServiceInfo;
         }
 
         @Override
         public void run() {
             Log.d(TAG, "Registering: " + serviceInfo.getServiceName() +
-                       "\nServiceType: " + serviceInfo.getServiceType() +
-                       "\nPort: " + String.valueOf(serviceInfo.getPort()));
+                    "\nServiceType: " + serviceInfo.getServiceType() +
+                    "\nPort: " + String.valueOf(serviceInfo.getPort()));
             mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
         }
 
-        public void start()
-        {
+        public void start() {
             Thread thread = new Thread(this);
             thread.start();
         }
 
-        public void interrupt()
-        {
+        public void interrupt() {
             Log.d(TAG, "Registering Thread stopped");
             return;
         }
@@ -127,8 +144,7 @@ public class practice extends AppCompatActivity {
     }
 
     //Stops the register thread and unregisters the service
-    public void stopRegister(View view)
-    {
+    public void stopRegister(View view) {
         mNsdManager.unregisterService(mRegistrationListener);
         TextView textview = (TextView) findViewById(R.id.register_textview);
         textview.setText(mServiceName + " unregistered.");
@@ -136,62 +152,70 @@ public class practice extends AppCompatActivity {
     }
 
     //Starts the discover thread and process
-    public void startDiscover(View view)
-    {
+    public void startDiscover(View view) {
         //Clear the arraylist
         servicelist.clear();
         TextView textview = (TextView) findViewById(R.id.discover_textview);
         textview.setText("Starting discoverServices");
-        // TODO: 21/11/17 clear the linearlayout in scrollview 
+        // TODO: 21/11/17 clear the linearlayout in scrollview
         d = new DiscoverMe();
         d.start();
     }
 
 
     //Discover thread
-    class DiscoverMe implements Runnable
-    {
+    class DiscoverMe implements Runnable {
         @Override
-        public void run()
-        {
+        public void run() {
             //Searching for only http, returns back service name. Doing the global search can't find name
             mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoverListener);
         }
 
-        public void interrupt()
-        {
+        public void interrupt() {
             Log.d(TAG, "Discovery Thread Stopped");
             return;
         }
 
-        public void start()
-        {
+        public void start() {
             Thread thread = new Thread(this);
             thread.start();
         }
     }
 
     //Stop discover thread and display all found services
-    public void stopDiscover(View view)
-    {
+    public void stopDiscover(View view) {
         mNsdManager.stopServiceDiscovery(mDiscoverListener);
         TextView textview = (TextView) findViewById(R.id.discover_textview);
         textview.setText("Stopped serviceDiscovery " + "\nFound " + servicelist.size() + " service(s):\n");
 
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.mylinear);
 
-        for(int i = 0; i < servicelist.size(); i++)
-        {
+        for (int i = 0; i < servicelist.size(); i++) {
             //textview.append(String.valueOf(i + 1) + ": " + servicelist.get(i).toString() + "\n\n");
 
             TextView textView = new TextView(this);
             linearLayout.addView(textView);
 
-            textView.setText(String.valueOf(i + 1) + ": " + servicelist.get(i).toString() + "\n\n");
+            textView.setText(String.valueOf(i + 1) + ": " + servicelist.get(i).getServiceType() + "\n\n");
+            Log.d("checkingshit", String.valueOf(i + 1) + ": " + servicelist.get(i).toString());
 
         }
         //Stop the discovery thread
         d.interrupt();
+    }
+
+    private class ResolveMe implements Runnable {
+
+        @Override
+        public void run() {
+            Log.d("onServiceResolved", "Connecting?");
+            mNsdManager.resolveService(serviceInfo, mResolveListener);
+        }
+
+        public void start() {
+            Thread thread = new Thread(this);
+            thread.start();
+        }
     }
 
     //ResolveListener callback
@@ -201,17 +225,18 @@ public class practice extends AppCompatActivity {
             Log.d(TAG, "onResolveFailed. Errorcode: " + String.valueOf(i) + " " +
                     "NsdServiceInfo: " + nsdServiceInfo.getServiceName());
         }
+
         @Override
         public void onServiceResolved(NsdServiceInfo nsdServiceInfo) {
             Log.d(TAG, "onServiceResolved. Found: " + nsdServiceInfo.getServiceName());
-            /*
+
             if (serviceInfo.getServiceName().equals(nsdServiceInfo.getServiceName())) {
                 serviceInfo = nsdServiceInfo;
                 int port = serviceInfo.getPort();
                 InetAddress host = serviceInfo.getHost();
                 Log.d(TAG, "onServiceResolved! Port: " + String.valueOf(port) + " Host: " + String.valueOf(host));
             }
-            */
+
         }
     };
 
@@ -254,8 +279,7 @@ public class practice extends AppCompatActivity {
                 Log.d(TAG, "Same machine: " + mServiceName);
             } else if (nsdServiceInfo.getServiceName().contains("work")) {
                 mNsdManager.resolveService(nsdServiceInfo, mResolveListener);
-            }
-            else {
+            } else {
                 Log.d(TAG, "No Match");
             }
         }
@@ -268,12 +292,11 @@ public class practice extends AppCompatActivity {
     };
 
     //The registration listener
-    NsdManager.RegistrationListener  mRegistrationListener = new NsdManager.RegistrationListener()
-    {
+    NsdManager.RegistrationListener mRegistrationListener = new NsdManager.RegistrationListener() {
         @Override
         public void onRegistrationFailed(NsdServiceInfo nsdServiceInfo, int i) {
             Log.d(TAG, "onRegistrationFailed. For: " + nsdServiceInfo.getServiceName() +
-            " ServiceType: " + nsdServiceInfo.getServiceType() + " Int: " + String.valueOf(i));
+                    " ServiceType: " + nsdServiceInfo.getServiceType() + " Int: " + String.valueOf(i));
             r.interrupt();
         }
 
@@ -288,7 +311,7 @@ public class practice extends AppCompatActivity {
         public void onServiceRegistered(NsdServiceInfo nsdServiceInfo) {
             mServiceName = nsdServiceInfo.getServiceName();
             port = nsdServiceInfo.getPort();
-            Log.d(TAG, "onServiceRegisted. Registered: " + nsdServiceInfo.getServiceName() + String.valueOf(port));
+            Log.d(TAG, "onServiceRegisted. Registered: " + mServiceName + " Port: " + String.valueOf(port));
         }
 
         @Override
@@ -296,5 +319,4 @@ public class practice extends AppCompatActivity {
             Log.d(TAG, "onServiceUnRegistered: " + nsdServiceInfo.getServiceName());
         }
     };
-
 }

@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Wifi_App.iml" filepath="$PROJECT_DIR$/Wifi_App.iml" />
+      <module fileurl="file://C:\Users\Mitchell\Desktop\Android Dev\Wifi-Github\Wi-Fi-NSD\Wifi_App\Wifi_App.iml" filepath="C:\Users\Mitchell\Desktop\Android Dev\Wifi-Github\Wi-Fi-NSD\Wifi_App\Wifi_App.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://C:\Users\Mitchell\Desktop\Android Dev\Wifi-Github\Wi-Fi-NSD\Wifi_App\app\app.iml" filepath="C:\Users\Mitchell\Desktop\Android Dev\Wifi-Github\Wi-Fi-NSD\Wifi_App\app\app.iml" />
     </modules>
   </component>
 </project>
