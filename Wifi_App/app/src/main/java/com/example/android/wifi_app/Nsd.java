@@ -156,6 +156,9 @@ public class Nsd extends AppCompatActivity {
     public void startDiscover(View view) {
         //Clear the arraylist
         servicelist.clear();
+        //clear the views on screen
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.mylinear);
+        linearLayout.removeAllViews();
         TextView textview = (TextView) findViewById(R.id.discover_textview);
         textview.setText("Starting discoverServices");
         // TODO: 21/11/17 clear the linearlayout in scrollview
@@ -187,6 +190,7 @@ public class Nsd extends AppCompatActivity {
     public void stopDiscover(View view) {
         mNsdManager.stopServiceDiscovery(mDiscoverListener);
         TextView textview = (TextView) findViewById(R.id.discover_textview);
+
         textview.setText("Stopped serviceDiscovery " + "\nFound " + servicelist.size() + " service(s):\n");
 
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.mylinear);
